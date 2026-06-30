@@ -8,7 +8,6 @@ def patch_files():
     print("Scanning all directories for redirects and deprecated API calls...")
 
     for root, dirs, files in os.walk(target_dir):
-        # Safely skip git and build folders without breaking the path logic
         if '.git' in root or '/build/' in root:
             continue
 
@@ -27,14 +26,25 @@ def patch_files():
 
                 # 2. Fix Cloudstream API deprecation (upgrading 'rating' to 'score')
                 if 'rating' in content:
-                    # Catch assignments like "rating =" or "rating="
-                    content = re.sub(r'\brating\s*=', 'score =', content)
-                    # Catch property accesses like "it.rating"
-                    content = re.sub(r'\.rating\b', '.score', content)
-                    # Catch named arguments like "rating:"
-                    content = re.sub(r'\brating\s*:', 'score:', content)
+                    new_lines = []
+                    for line in content.split('\n'):
+                        # If the line contains a string, use targeted replacements to protect CSS selectors
+                        if '"' in line or "'" in line:
+                            # Matches: rating = 
+                            line = re.sub(r'\brating\s*=', 'score =', line)
+                            # Matches: rating:
+                            line = re.sub(r'\brating\s*:', 'score:', line)
+                            # Matches: object.rating or object?.rating
+                            line = re.sub(r'([\w)\]]\s*\??\.)rating\b', r'\g<1>score', line)
+                            # Matches: rating?, rating,, or rating)
+                            line = re.sub(r'\brating(\s*[?,)])', r'score\1', line)
+                            new_lines.append(line)
+                        else:
+                            # If no strings exist on the line, safely replace the word completely
+                            new_lines.append(re.sub(r'\brating\b', 'score', line))
+                    
+                    content = '\n'.join(new_lines)
                 
-                # If changes were made, write them back to the file
                 if content != original_content:
                     with open(filepath, 'w', encoding='utf-8') as f:
                         f.write(content)
