@@ -36,10 +36,12 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Build Cloudstream Extensions
+            - name: Build Cloudstream Extensions
         run: |
           chmod +x gradlew
           ./gradlew make
+          ./gradlew makePluginsJson
+
 
       # This new step helps us debug where the file went
       - name: Archive build artifacts
