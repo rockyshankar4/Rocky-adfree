@@ -56,9 +56,16 @@ jobs:
             cp plugins.json deployment/CNC.json
           fi
           
-          # Replace old URLs/names with yours to prevent "Invalid Data" errors
+          # Fix the JSON URLs to point to your repository
+          # This replaces the old repo path with yours so Cloudstream finds your files
+          sed -i 's|CNCVerse-Cloud-Stream-Extension|Rocky-adfree|g' deployment/CNC.json
+          
+          # Update the repositoryUrl field specifically
           sed -i 's|https://github.com/NivinCNC/CNCVerse-Cloud-Stream-Extension|https://github.com/rockyshankar4/Rocky-adfree|g' deployment/CNC.json
+          
+          # Update the authors
           sed -i 's|NivinCNC|rockyshankar4|g' deployment/CNC.json
+          sed -i 's|"authors": \["CNCVerse"\]|"authors": ["rockyshankar4"]|g' deployment/CNC.json
 
       - name: Deploy to Builds Branch
         uses: peaceiris/actions-gh-pages@v3
