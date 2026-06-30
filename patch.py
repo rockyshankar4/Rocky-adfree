@@ -2,15 +2,14 @@ import os
 import re
 
 def patch_files():
-    # Set to '.' to scan the entire repository and all sub-folders
     target_dir = '.' 
     patched_count = 0
 
     print("Scanning all directories for redirects and deprecated API calls...")
 
     for root, dirs, files in os.walk(target_dir):
-        # Skip hidden directories like .git or build folders to save time
-        if any(part.startswith('.') or part == 'build' for part in root.split(os.sep)):
+        # Safely skip git and build folders without breaking the path logic
+        if '.git' in root or '/build/' in root:
             continue
 
         for file in files:
