@@ -1,0 +1,53 @@
+name: Build and Deploy CNCVerse Ad-Free
+
+on:
+  workflow_dispatch: # Allows you to trigger the build manually
+  push:
+    branches:
+      - master
+      - main
+
+# Grant permissions needed to publish the build branch
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Extension
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Patch out OMG10 Redirects
+        run: python patch.py
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'jbr'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build Cloudstream Extensions
+        run: |
+          chmod +x gradlew
+          ./gradlew make
+
+      - name: Deploy to Builds Branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: builds
+          # Cloudstream extensions typically output to the root directory or a specific build folder
+          # Ensure this points to where your make.json / plugins are generated
+          publish_dir: ./ 
+          exclude_assets: '.github,src,gradle,gradlew,gradlew.bat,build.gradle.kts,settings.gradle.kts,patch.py'
