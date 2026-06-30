@@ -20,16 +20,20 @@ def patch_files():
 
                 original_content = content
 
+                # Strip the invisible BOM character if it exists to prevent syntax errors
+                if content.startswith('\ufeff'):
+                    content = content[1:]
+
                 # 1. Safely neutralize omg10.com redirect
                 if 'omg10.com' in content:
                     content = re.sub(r'(?:www\.)?omg10\.com', '127.0.0.1', content)
 
-                # 2. Force Kotlin to ignore the deprecation error instead of rewriting the syntax
+                # 2. Force Kotlin to ignore the deprecation error without breaking the file structure
                 if 'rating' in content and 'DEPRECATION_ERROR' not in content:
-                    # In Kotlin, file-level annotations must go at the absolute top, before 'package'
                     content = '@file:Suppress("DEPRECATION", "DEPRECATION_ERROR")\n' + content
                 
                 if content != original_content:
+                    # Write back as standard UTF-8 (Python automatically leaves out the BOM)
                     with open(filepath, 'w', encoding='utf-8') as f:
                         f.write(content)
                     patched_count += 1
