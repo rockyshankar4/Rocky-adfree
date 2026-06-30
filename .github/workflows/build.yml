@@ -39,23 +39,26 @@ jobs:
       - name: Build Cloudstream Extensions
         run: |
           chmod +x gradlew
-          ./gradlew make
-          ./gradlew makePluginsJson
+          ./gradlew make makePluginsJson
 
-
-
-      # This new step helps us debug where the file went
-      - name: Archive build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-results
-          path: .
-          retention-days: 1
+      - name: Prepare Deployment
+        run: |
+          # Create a directory for build artifacts
+          mkdir -p deployment
+          # Copy .cs3 files and the generated JSON
+          cp **/build/*.cs3 deployment/ || true
+          # Check for plugins.json or repo.json and move/rename to CNC.json
+          if [ -f "build/plugins.json" ]; then
+            cp build/plugins.json deployment/CNC.json
+          elif [ -f "plugins.json" ]; then
+            cp plugins.json deployment/CNC.json
+          else
+            echo "CNC.json not found in expected locations."
+          fi
 
       - name: Deploy to Builds Branch
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: builds
-          # We set this to '.' to publish everything in the root
-          publish_dir: .
+          publish_dir: ./deployment
