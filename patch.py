@@ -1,11 +1,11 @@
 import os
 import re
 
-def patch_redirects():
+def patch_files():
     target_dir = 'src'
     patched_count = 0
 
-    print("Scanning for omg10.com redirects...")
+    print("Scanning for redirects and deprecated API calls...")
 
     for root, _, files in os.walk(target_dir):
         for file in files:
@@ -15,17 +15,27 @@ def patch_redirects():
                 with open(filepath, 'r', encoding='utf-8') as f:
                     content = f.read()
 
+                original_content = content
+
+                # 1. Safely neutralize omg10.com redirect
                 if 'omg10.com' in content:
-                    # Safely replace the domain with localhost to avoid breaking quotation syntax
-                    new_content = re.sub(r'(?:www\.)?omg10\.com', '127.0.0.1', content)
-                    
-                    if content != new_content:
-                        with open(filepath, 'w', encoding='utf-8') as f:
-                            f.write(new_content)
-                        patched_count += 1
-                        print(f"✅ Safely neutralized redirect in: {filepath}")
+                    content = re.sub(r'(?:www\.)?omg10\.com', '127.0.0.1', content)
+
+                # 2. Fix Cloudstream API deprecation (upgrading 'rating' to 'score')
+                if 'rating' in content:
+                    # Replaces instances like "rating = " with "score = "
+                    content = re.sub(r'\brating\s*=', 'score =', content)
+                    # Replaces instances like "it.rating" with "it.score"
+                    content = re.sub(r'\.rating\b', '.score', content)
+                
+                # If changes were made, write them back to the file
+                if content != original_content:
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        f.write(content)
+                    patched_count += 1
+                    print(f"✅ Patched file: {filepath}")
 
     print(f"Finished patching. Total files modified: {patched_count}")
 
 if __name__ == '__main__':
-    patch_redirects()
+    patch_files()
