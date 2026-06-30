@@ -1,4 +1,4 @@
-'jbr': Build and Deploy CNCVerse Ad-Free
+name: Build and Deploy CNCVerse Ad-Free
 
 on:
   workflow_dispatch: # Allows you to trigger the build manually
@@ -32,7 +32,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution:'temurin'
+          distribution: 'temurin'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
