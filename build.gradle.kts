@@ -36,11 +36,12 @@ val localProperties = Properties().apply {
 }
 
 // Helper to read secret from local.properties or system environment or fallback
-fun getSecret(key: String, fallback: String = ""): String {
+fun getSecret(key: String, fallback: String = "0"): String { // Changed default to "0"
     return localProperties.getProperty(key)
         ?: System.getenv(key)
         ?: fallback
 }
+
 
 
 fun Project.cloudstream(configuration: CloudstreamExtension.() -> Unit) = extensions.getByName<CloudstreamExtension>("cloudstream").configuration()
