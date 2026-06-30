@@ -2,7 +2,6 @@ import os
 import re
 
 def patch_redirects():
-    # Target the directory containing the Kotlin source files
     target_dir = 'src'
     patched_count = 0
 
@@ -16,19 +15,15 @@ def patch_redirects():
                 with open(filepath, 'r', encoding='utf-8') as f:
                     content = f.read()
 
-                # Check if the domain is in the file
                 if 'omg10.com' in content:
-                    # NOTE: Adjust the regex below based on exactly how the redirect is coded.
-                    # This example replaces the target domain with an empty string or benign URL,
-                    # or you can use regex to strip out the entire block.
-                    # Here, we replace instances of the URL to short-circuit the redirect.
-                    new_content = re.sub(r'https?://(?:www\.)?omg10\.com[^"\'\s]*', '""', content)
+                    # Safely replace the domain with localhost to avoid breaking quotation syntax
+                    new_content = re.sub(r'(?:www\.)?omg10\.com', '127.0.0.1', content)
                     
                     if content != new_content:
                         with open(filepath, 'w', encoding='utf-8') as f:
                             f.write(new_content)
                         patched_count += 1
-                        print(f"✅ Patched redirect in: {filepath}")
+                        print(f"✅ Safely neutralized redirect in: {filepath}")
 
     print(f"Finished patching. Total files modified: {patched_count}")
 
