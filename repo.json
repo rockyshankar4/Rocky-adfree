@@ -1,0 +1,8 @@
+{
+  "name": "CNC Verse",
+  "description": "CNC CloudStream Repository",
+  "manifestVersion": 1,
+  "pluginLists": [
+    "https://raw.githubusercontent.com/rockyshankar4/Rocky-adfree/builds/CNC.json"
+  ]
+}
