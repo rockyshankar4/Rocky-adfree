@@ -2,12 +2,17 @@ import os
 import re
 
 def patch_files():
-    target_dir = 'src'
+    # Set to '.' to scan the entire repository and all sub-folders
+    target_dir = '.' 
     patched_count = 0
 
-    print("Scanning for redirects and deprecated API calls...")
+    print("Scanning all directories for redirects and deprecated API calls...")
 
-    for root, _, files in os.walk(target_dir):
+    for root, dirs, files in os.walk(target_dir):
+        # Skip hidden directories like .git or build folders to save time
+        if any(part.startswith('.') or part == 'build' for part in root.split(os.sep)):
+            continue
+
         for file in files:
             if file.endswith('.kt'):
                 filepath = os.path.join(root, file)
@@ -23,10 +28,12 @@ def patch_files():
 
                 # 2. Fix Cloudstream API deprecation (upgrading 'rating' to 'score')
                 if 'rating' in content:
-                    # Replaces instances like "rating = " with "score = "
+                    # Catch assignments like "rating =" or "rating="
                     content = re.sub(r'\brating\s*=', 'score =', content)
-                    # Replaces instances like "it.rating" with "it.score"
+                    # Catch property accesses like "it.rating"
                     content = re.sub(r'\.rating\b', '.score', content)
+                    # Catch named arguments like "rating:"
+                    content = re.sub(r'\brating\s*:', 'score:', content)
                 
                 # If changes were made, write them back to the file
                 if content != original_content:
