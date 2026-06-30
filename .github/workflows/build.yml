@@ -41,20 +41,24 @@ jobs:
           chmod +x gradlew
           ./gradlew make makePluginsJson
 
-      - name: Prepare Deployment
+      - name: Fix JSON paths and Prepare Deployment
         run: |
-          # Create a directory for build artifacts
+          # Create a dedicated deployment folder
           mkdir -p deployment
-          # Copy .cs3 files and the generated JSON
-          cp **/build/*.cs3 deployment/ || true
-          # Check for plugins.json or repo.json and move/rename to CNC.json
+          
+          # Copy all generated extension files
+          find . -name "*.cs3" -exec cp {} deployment/ \;
+          
+          # Move and fix the index file
           if [ -f "build/plugins.json" ]; then
             cp build/plugins.json deployment/CNC.json
           elif [ -f "plugins.json" ]; then
             cp plugins.json deployment/CNC.json
-          else
-            echo "CNC.json not found in expected locations."
           fi
+          
+          # Replace old URLs/names with yours to prevent "Invalid Data" errors
+          sed -i 's|https://github.com/NivinCNC/CNCVerse-Cloud-Stream-Extension|https://github.com/rockyshankar4/Rocky-adfree|g' deployment/CNC.json
+          sed -i 's|NivinCNC|rockyshankar4|g' deployment/CNC.json
 
       - name: Deploy to Builds Branch
         uses: peaceiris/actions-gh-pages@v3
